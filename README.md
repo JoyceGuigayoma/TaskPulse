@@ -7,52 +7,65 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+# TaskPulse
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+A multi-tenant SaaS project & task management platform built with Laravel — designed to explore real-world patterns like workspace isolation, role-based access, and subscription billing.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+TaskPulse lets teams organize their work inside isolated **workspaces**, similar in spirit to tools like Linear or Trello. Users can belong to multiple workspaces, switch between them, and manage projects and tasks scoped entirely to whichever workspace is active — with no data leakage between tenants.
 
-## Learning Laravel
+This project was built to practice designing and implementing a multi-tenant application architecture from the ground up, rather than relying on a starter kit or boilerplate for the tenancy layer.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Features
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Multi-tenant workspaces** — create, switch between, and manage multiple isolated workspaces
+- **Project & task management** — a Trello-style board (To Do / In Progress / Done) with task assignment and due dates
+- **Authentication** — registration, login, and email verification via Laravel Breeze
+- **Automatic workspace scoping** — a custom middleware resolves the active workspace on every request, so all queries stay scoped without manual filtering
+- **Billing-ready architecture** — Laravel Cashier (Stripe) wired at the workspace level for future subscription tiers
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Tech Stack
 
-## Agentic Development
+| Layer | Technology |
+|---|---|
+| Backend | Laravel 13 (PHP), SQLite |
+| Frontend | Tailwind CSS, Alpine.js, Blade (via Vite) |
+| Billing | Laravel Cashier (Stripe) |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Architecture Highlights
+
+**Workspace-aware middleware.** An `IdentifyWorkspace` middleware runs on every authenticated request. It resolves the user's active workspace from the session (falling back to their first workspace), binds it into the service container, and shares it with every view. This means controllers and views can call a simple `currentWorkspace()` helper instead of passing workspace context around manually — and every query stays correctly scoped to the right tenant.
+
+**Role-based data model.** Workspace membership is modeled through a `workspace_user` pivot table with a `role` column (`admin`, `manager`, `member`). The schema is already role-aware; the current release enforces a single-role (admin) workflow, with granular permission checks planned as a near-term improvement (see Roadmap).
+
+## Getting Started
 
 ```bash
-composer require laravel/boost --dev
+git clone <your-repo-url>
+cd taskpulse
+composer install
+npm install
 
-php artisan boost:install
+cp .env.example .env
+php artisan key:generate
+
+php artisan migrate
+
+npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Visit `http://127.0.0.1:8000` and register a new account — a personal workspace is created automatically.
 
-## Contributing
+## Roadmap
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- [ ] Team invitations with role assignment (admin / manager / member)
+- [ ] Permission checks enforcing role-based access (e.g. only admins/managers can delete projects)
+- [ ] Stripe-powered subscription billing per workspace
+- [ ] Task comments and detail view
+- [ ] Project archiving
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open source and available for learning purposes.
